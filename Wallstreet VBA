@@ -1,0 +1,49 @@
+
+'loop through alll sheets
+For Each ws In Worksheets
+
+    output_row = 2
+    current_ticker = ws.Cells(2, 1).Value
+    opening = ws.Cells(2, 3).Value
+    ws.Cells(output_row, 9).Value = current_ticker
+    total_vol = 0
+    
+    'sets output table headers
+    ws.Range("I1").Value = "Ticker"
+    ws.Range("J1").Value = "Yearly Change"
+    ws.Range("K1").Value = "Percent Change"
+    ws.Range("L1").Value = "Total Stock Volume"
+    ws.Range("I:L").EntireColumn.AutoFit
+
+    ' Determine Last row
+    LastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+
+    For i = 2 To (LastRow + 1)
+        If current_ticker <> ws.Cells(i, 1).Value Then
+            closing = ws.Cells(i - 1, 6).Value
+            ws.Cells(output_row, 10).Value = (closing - opening)    'calculates yearly change
+            If (closing - opening) >= 0 Then
+                 ws.Cells(output_row, 10).Interior.ColorIndex = 4
+            Else
+                ws.Cells(output_row, 10).Interior.ColorIndex = 3
+                
+            End If
+    
+            ws.Cells(output_row, 11).Value = (closing / opening) - 1     'calculates percent change
+            ws.Cells(output_row, 11).NumberFormat = "0.00%"
+            ws.Cells(output_row, 12).Value = total_vol                   'sets total vol for last ticker
+            current_ticker = ws.Cells(i, 1).Value
+            output_row = output_row + 1
+            ws.Cells(output_row, 9).Value = current_ticker
+            opening = ws.Cells(i, 3).Value                                  'sets opening for new ticker val
+            total_vol = CLng(ws.Cells(i, 7).Value)
+        Else
+            If opening = 0 Then                         'for edge case when company had no value at the beginning of year
+                opening = ws.Cells(i, 3).Value      'this way you dont divide by 0 when calculating percenty change
+            End If
+            total_vol = total_vol + CLng(ws.Cells(i, 7).Value)
+        
+        End If
+      Next i
+  Next ws
+End Sub
